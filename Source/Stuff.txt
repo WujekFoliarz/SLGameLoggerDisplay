@@ -1,0 +1,40 @@
+```
+    float zoomSpeed = 0.1f;
+    if (IsKeyDown(KEY_LEFT_BRACKET))
+        outsideScale *= powf(0.5f, zoomSpeed * GetFrameTime());
+
+    if (IsKeyDown(KEY_RIGHT_BRACKET))
+        outsideScale *= powf(2.0f, zoomSpeed * GetFrameTime());
+
+    if (IsKeyDown(KEY_UP))
+        outsideOffset.y -= 0.5f;
+    if (IsKeyDown(KEY_DOWN))
+        outsideOffset.y += 0.5f;
+    if (IsKeyDown(KEY_LEFT))
+        outsideOffset.x -= 0.5f;
+    if (IsKeyDown(KEY_RIGHT))
+        outsideOffset.x += 0.5f;
+
+    if (IsKeyDown(KEY_W))
+        m_ReplayState.HczOffset.y -= 0.5f;
+    if (IsKeyDown(KEY_S))
+        m_ReplayState.HczOffset.y += 0.5f;
+    if (IsKeyDown(KEY_A))
+        m_ReplayState.HczOffset.x += 0.5f;
+    if (IsKeyDown(KEY_D))
+        m_ReplayState.HczOffset.x -= 0.5f;
+
+    if (IsKeyDown(KEY_I))
+        m_ReplayState.EzOffset.y -= 0.5f;
+    if (IsKeyDown(KEY_K))
+        m_ReplayState.EzOffset.y += 0.5f;
+    if (IsKeyDown(KEY_J))
+        m_ReplayState.EzOffset.x -= 0.5f;
+    if (IsKeyDown(KEY_L))
+        m_ReplayState.EzOffset.x += 0.5f;
+
+    if (IsKeyDown(KEY_O))
+        m_ReplayState.EzScale -= 0.5f;
+    if (IsKeyDown(KEY_P))
+        m_ReplayState.EzScale += 0.5f;
+```
