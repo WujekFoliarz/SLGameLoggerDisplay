@@ -11,7 +11,7 @@ permissions:
 jobs:
   linux:
     name: Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,6 +20,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
+            g++-14 \
+            gcc-14 \
             libasound2-dev \
             libgl1-mesa-dev \
             libssl-dev \
@@ -30,7 +32,10 @@ jobs:
             libx11-dev
 
       - name: Configure
-        run: cmake --preset x64-relwithdebinfo
+        run: >-
+          cmake --preset x64-relwithdebinfo
+          -DCMAKE_C_COMPILER=gcc-14
+          -DCMAKE_CXX_COMPILER=g++-14
 
       - name: Build
         run: cmake --build out/x64-relwithdebinfo --parallel 2
