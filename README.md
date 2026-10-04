@@ -1,7 +1,5 @@
 # SLGameLoggerDisplay
 
-## Not tested on Windows
-
 ## Build Requirements
 
 - CMake 3.23 or newer (required for the included presets)
