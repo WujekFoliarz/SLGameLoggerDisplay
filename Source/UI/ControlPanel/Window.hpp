@@ -2,7 +2,7 @@
 
 #include "../../ReplayState.hpp"
 
-namespace UI
+namespace SLUI
 {
     namespace ControlPanel
     {

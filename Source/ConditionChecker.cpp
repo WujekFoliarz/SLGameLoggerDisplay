@@ -15,6 +15,14 @@
 #include "EventConditions/Scp268Used.hpp"
 #include "EventConditions/Scp268Expired.hpp"
 #include "EventConditions/PickingUpItem.hpp"
+#include "EventConditions/NtfWave.hpp"
+#include "EventConditions/NtfMiniWave.hpp"
+#include "EventConditions/CIWave.hpp"
+#include "EventConditions/CIMiniWave.hpp"
+#include "EventConditions/BallThrown.hpp"
+#include "EventConditions/HitByBall.hpp"
+#include "EventConditions/FlashGrenadeThrown.hpp"
+#include "EventConditions/FlashGrenadeExploded.hpp"
 
 #include <print>
 #include <functional>
@@ -35,8 +43,16 @@ ConditionChecker::ConditionCheckResult ConditionChecker::GetResult(const Events:
              }},
             {Events::EventEnum::PlayerPosition, &EventConditions::PlayerPosition::GetResult},
             {Events::EventEnum::PlayerDied, &EventConditions::PlayerDied::GetResult},
+            {Events::EventEnum::NtfWave, &EventConditions::NtfWave::GetResult},
+            {Events::EventEnum::NtfMiniWave, &EventConditions::NtfMiniWave::GetResult},
+            {Events::EventEnum::CIWave, &EventConditions::CIWave::GetResult},
+            {Events::EventEnum::CIMiniWave, &EventConditions::CIMiniWave::GetResult},
+            {Events::EventEnum::BallThrown, &EventConditions::BallThrown::GetResult},
+            {Events::EventEnum::HitByBall, &EventConditions::HitByBall::GetResult},
             {Events::EventEnum::GrenadeThrown, &EventConditions::GrenadeThrown::GetResult},
             {Events::EventEnum::GrenadeExploded, &EventConditions::GrenadeExploded::GetResult},
+            {Events::EventEnum::FlashGrenadeThrown, &EventConditions::FlashGrenadeThrown::GetResult},
+            {Events::EventEnum::FlashGrenadeExploded, &EventConditions::FlashGrenadeExploded::GetResult},
             {Events::EventEnum::DoorOpened, &EventConditions::DoorOpened::GetResult},
             {Events::EventEnum::DoorClosed, &EventConditions::DoorClosed::GetResult},
             {Events::EventEnum::PlayerEscaped, &EventConditions::PlayerEscaped::GetResult},

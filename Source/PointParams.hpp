@@ -39,6 +39,8 @@ namespace PointParams
         MicroHidCharging,
         MicroHidCanceledCharging,
         PlayerPosition,
+        FlashbangExploded,
+        FlashbangThrown,
         Count
     };
 
@@ -80,6 +82,10 @@ namespace PointParams
             return "MicroHidCanceledCharging";
         case Icon::PlayerPosition:
             return "PlayerPosition";
+        case Icon::FlashbangExploded:
+            return "FlashbangExploded";
+        case Icon::FlashbangThrown:
+            return "FlashbangThrown";
         }
 
         return "Unknown";

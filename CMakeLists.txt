@@ -11,7 +11,10 @@ add_executable(${PROJECT_NAME} ${MY_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(PRODUCTION_BUILD OFF)
-if(PRODUCTION_BUILD)
+if(EMSCRIPTEN)
+    target_link_options(${PROJECT_NAME} PRIVATE "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/Resources@/Resources")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE RESOURCE_PATH="/Resources/")
+elseif(PRODUCTION_BUILD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC PRODUCTION_BUILD)
     target_compile_definitions(${PROJECT_NAME} PRIVATE RESOURCE_PATH="Resources/")
 else()
@@ -19,14 +22,29 @@ else()
 endif()
 
 # -- Libraries --
+set(NLOHMANN_JSON_TARGET_NAME json)
+set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF CACHE BOOL "Disable optional OpenSSL support" FORCE)
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF CACHE BOOL "Disable optional zlib support" FORCE)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF CACHE BOOL "Disable optional Brotli support" FORCE)
+set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF CACHE BOOL "Disable optional zstd support" FORCE)
+set(HTTPLIB_USE_NON_BLOCKING_GETADDRINFO OFF CACHE BOOL "Disable non-blocking getaddrinfo" FORCE)
+
 add_subdirectory("Thirdparty/raylib")
 add_subdirectory("Thirdparty/json")
 add_subdirectory("Thirdparty/imgui")
 add_subdirectory("Thirdparty/rlImGui")
-target_link_libraries(${PROJECT_NAME} PRIVATE raylib json imgui rlimgui)
-
+add_subdirectory("Thirdparty/cpp-httplib")
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib json imgui rlimgui httplib)
+if(MINGW)
+    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++exp)
+endif()
 # -- Extension --
 # set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".asi")
+
+if(EMSCRIPTEN)
+    set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+    target_link_options(${PROJECT_NAME} PRIVATE "-sUSE_WEBGL2=1" "-sASYNCIFY=1" "-sFETCH=1" "--shell-file=${CMAKE_CURRENT_SOURCE_DIR}/emscripten-shell.html")
+endif()
 
 # -- Strip debug symbols and statically link libgcc on mingw --
 set(DEBUG_FILE "${PROJECT_NAME}.debug")
@@ -37,8 +55,10 @@ if(MINGW)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 endif()
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_OBJCOPY} --only-keep-debug $<TARGET_FILE:${PROJECT_NAME}> ${DEBUG_FILE}
-    COMMAND ${CMAKE_OBJCOPY} --strip-all --strip-unneeded $<TARGET_FILE:${PROJECT_NAME}>
-    COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=${DEBUG_FILE} $<TARGET_FILE:${PROJECT_NAME}>
-)
+if(NOT EMSCRIPTEN)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} --only-keep-debug $<TARGET_FILE:${PROJECT_NAME}> ${DEBUG_FILE}
+        COMMAND ${CMAKE_OBJCOPY} --strip-all --strip-unneeded $<TARGET_FILE:${PROJECT_NAME}>
+        COMMAND ${CMAKE_OBJCOPY} --add-gnu-debuglink=${DEBUG_FILE} $<TARGET_FILE:${PROJECT_NAME}>
+    )
+endif()

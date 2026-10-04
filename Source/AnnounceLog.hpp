@@ -26,7 +26,7 @@ namespace AnnounceLog
         void Clear();
     private:
         std::vector<AnnounceLogEntry> m_Queue;
-        float m_AdvanceSpeed = 0.007f;
+        float m_AdvanceSpeed = 0.001f;
         float m_CurrentTime = 0.0f;
         int m_CurrentIndex = 0;
     };

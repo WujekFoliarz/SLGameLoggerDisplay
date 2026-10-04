@@ -8,7 +8,7 @@ namespace Packet
 {
     namespace Room
     {
-        #pragma pack(1)
+        #pragma pack(push, 1)
         struct Data
         {
             std::string Name = "";
@@ -23,7 +23,7 @@ namespace Packet
             float RotationZ = 0.0f;
             float RotationW = 0.0f;
         };
-        #pragma pop(pack)
+        #pragma pack(pop)
 
         Data GetResult(const std::vector<uint8_t>& inputData);
     }

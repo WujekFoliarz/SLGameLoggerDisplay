@@ -9,12 +9,12 @@ namespace
     int kBaseTextSize = 30;
 }
 
-void UI::AnnounceLog::Render(Replay::State &state)
+void SLUI::AnnounceLog::Render(Replay::State &state)
 {
-    const float scale = UI::GetScale();
+    const float scale = SLUI::GetScale();
     int height = 50;
-    int posX = UI::sizes.ToolboxWidth;
-    int posY = UI::positions.ControlPanelY - (UI::sizes.ControlPanelHeight / 2);
+    int posX = SLUI::sizes.ToolboxWidth;
+    int posY = SLUI::positions.ControlPanelY - (SLUI::sizes.ControlPanelHeight / 2);
 
     auto textSize = state.Log.Draw(0, 0, kBaseTextSize * scale, true);
     DrawRectangle(posX + padding, posY - padding - textSize.y + (kBaseTextSize * scale), textSize.x, textSize.y, Color(58, 58, 58, 128));

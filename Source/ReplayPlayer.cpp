@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <print>
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 #include "rlImGui.h"
@@ -16,32 +17,45 @@
 #include "UI/UI.hpp"
 #include "UI/Scale.hpp"
 #include "Packets/PacketResolver.hpp"
+#include "Version.hpp"
+
+namespace
+{
+    constexpr std::array<uint8_t, 7> kReplayMagic{6, 's', 'l', 'd', 'e', 'm', 'o'};
+}
 
 float outsideScale = 1.2260439f;
 Vector2 outsideOffset = {256.0f, 56.5f};
 
 Replay::ReplayPlayer::ReplayPlayer()
 {
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-    InitWindow(1280, 720, "Secret Lab game log display");
-    SetWindowMinSize(400, 300);
-    SetTargetFPS(180);
-    SetExitKey(0);
-
     PointParams::Initialize();
     Rooms::Initialize();
-    UI::Initialize();
+    SLUI::Initialize();
 }
 
-void Replay::ReplayPlayer::LoadFromFile(const std::string &filePath)
+Replay::ReplayPlayer::~ReplayPlayer()
 {
+    Rooms::Uninitialize();
+}
+
+Replay::ReplayPlayer::FileLoadResult Replay::ReplayPlayer::LoadFromFile(const std::string &filePath)
+{
+    m_ReplayState.Exit = false;
     m_ReplayState.Points.clear();
 
     FILE *file = std::fopen(filePath.c_str(), "rb");
     if (file == nullptr)
     {
         std::println("File {} could not be opened", filePath);
-        return;
+        return FileLoadResult::FileFailedToOpen;
+    }
+
+    std::array<uint8_t, kReplayMagic.size()> magic{};
+    if (std::fread(magic.data(), 1, magic.size(), file) != magic.size() || magic != kReplayMagic)
+    {
+        std::fclose(file);
+        return FileLoadResult::MissingMagic;
     }
 
     int currentTick = 0;
@@ -57,13 +71,24 @@ void Replay::ReplayPlayer::LoadFromFile(const std::string &filePath)
             break;
 
         std::vector<uint8_t> data(packetLength);
-
         if (std::fread(data.data(), 1, data.size(), file) != data.size())
+        {
+            std::println("[Replay::ReplayPlayer::LoadFromFile] Truncated packet at end of file: type={}, length={}", static_cast<int>(packetType), packetLength);
             break;
+        }
 
         auto event = static_cast<Events::EventEnum>(packetType);
         auto packet = Packet::Resolve(event, data);
 
+        if (event == Events::EventEnum::Version)
+        {
+            auto versionData = std::get<Packet::VersionPacket::Data>(packet);
+            if (!Version::IsVersionCorrect(versionData))
+            {
+                std::fclose(file);
+                return FileLoadResult::VersionNotMatching;
+            }
+        }
         if (event == Events::EventEnum::NewTick)
         {
             currentTick = std::get<Packet::NewTick::Data>(packet).Tick;
@@ -80,6 +105,60 @@ void Replay::ReplayPlayer::LoadFromFile(const std::string &filePath)
 
     std::fclose(file);
     std::println("[Replay::ReplayPlayer::LoadFromFile] Loaded {}/{} ticks", m_ReplayState.Data.size(), m_ReplayState.TickCount);
+    return FileLoadResult::Success;
+}
+
+Replay::ReplayPlayer::FileLoadResult Replay::ReplayPlayer::LoadFromMemory(const std::vector<uint8_t> &data)
+{
+    m_ReplayState.Exit = false;
+    int currentTick = 0;
+    Packet::Reader reader(data);
+
+    if (!reader.HasRemaining(kReplayMagic.size()))
+        return FileLoadResult::MissingMagic;
+
+    const auto magic = reader.ReadBytes(static_cast<int>(kReplayMagic.size()));
+    if (!std::equal(magic.begin(), magic.end(), kReplayMagic.begin(), kReplayMagic.end()))
+        return FileLoadResult::MissingMagic;
+
+    while (reader.HasRemaining(3))
+    {
+        uint8_t packetType = reader.Read<uint8_t>();
+        uint16_t packetLength = reader.Read<uint16_t>();
+
+        if (!reader.HasRemaining(packetLength))
+        {
+            std::println("[Replay::ReplayPlayer::LoadFromMemory] Truncated packet: type={}, length={}", static_cast<int>(packetType), packetLength);
+            break;
+        }
+
+        auto packetData = reader.ReadBytes(packetLength);
+        auto event = static_cast<Events::EventEnum>(packetType);
+        auto packet = Packet::Resolve(event, packetData);
+
+        if (event == Events::EventEnum::Version)
+        {
+            auto versionData = std::get<Packet::VersionPacket::Data>(packet);
+            if (!Version::IsVersionCorrect(versionData))
+            {
+                return FileLoadResult::VersionNotMatching;
+            }
+        }
+        if (event == Events::EventEnum::NewTick)
+        {
+            currentTick = std::get<Packet::NewTick::Data>(packet).Tick;
+            m_ReplayState.TickCount = currentTick;
+        }
+        if (event == Events::EventEnum::Room)
+        {
+            HandlePacket(std::get<Packet::Room::Data>(packet), m_ReplayState, false);
+            continue;
+        }
+
+        m_ReplayState.Data[currentTick].push_back(packet);
+    }
+
+    return FileLoadResult::Success;
 }
 
 void Replay::ReplayPlayer::PollInput()
@@ -324,7 +403,7 @@ void Replay::ReplayPlayer::Render()
                 Vector2 origin = {textureWidth * 0.5f, textureHeight * 0.5f};
 
                 DrawTexturePro(*iconTexture, source, dest, origin, 0, {eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
-                //DrawTextureEx(*iconTexture, Vector2(screenX, screenY), 0.0f, 0.5f, {eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
+                // DrawTextureEx(*iconTexture, Vector2(screenX, screenY), 0.0f, 0.5f, {eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
             }
 
             if (!eventResult.AnnounceLogMessage.empty())
@@ -401,12 +480,22 @@ void Replay::ReplayPlayer::Render()
     // Draw UI
     {
         rlImGuiBegin();
-        UI::ApplyScale();
-        UI::Toolbox::Render(m_ReplayState);
-        UI::ControlPanel::Render(m_ReplayState);
-        UI::AnnounceLog::Render(m_ReplayState);
+        SLUI::ApplyScale();
+        SLUI::Toolbox::Render(m_ReplayState);
+        SLUI::ControlPanel::Render(m_ReplayState);
+        SLUI::AnnounceLog::Render(m_ReplayState);
         rlImGuiEnd();
     }
 
     EndDrawing();
+}
+
+bool Replay::ReplayPlayer::Exited()
+{
+    return m_ReplayState.Exit;
+}
+
+void Replay::ReplayPlayer::Reset()
+{
+    m_ReplayState = {};
 }

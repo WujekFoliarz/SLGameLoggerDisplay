@@ -1,5 +1,6 @@
 #include "Utils.hpp"
 #include <iomanip>
+#include <sstream>
 
 std::string Utils::GetRoundTimeString(float currentTick, int tickRate)
 {

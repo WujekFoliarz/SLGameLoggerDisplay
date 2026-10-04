@@ -2,7 +2,7 @@
 #include "rlImGui.h"
 #include "imgui.h"
 
-void UI::InitStyle()
+void SLUI::InitStyle()
 {
     ImGuiStyle &style = ImGui::GetStyle();
     ImVec4 *colors = style.Colors;

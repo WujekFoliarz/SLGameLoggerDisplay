@@ -5,7 +5,7 @@
 
 bool Initialized = false;
 
-void UI::Initialize()
+void SLUI::Initialize()
 {
     if (Initialized) return;
     rlImGuiSetup(true);

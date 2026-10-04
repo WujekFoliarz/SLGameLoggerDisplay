@@ -32,12 +32,11 @@
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
-
     {
       "name": "base-mingw-cross",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "binaryDir": "${sourceDir}/out/${presetName}",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -56,13 +55,6 @@
       }
     },
     {
-      "name": "Linux MinGW Debug",
-      "inherits": "base-mingw-cross",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
       "name": "Linux MinGW Release",
       "inherits": "base-mingw-cross",
       "cacheVariables": {
@@ -75,6 +67,17 @@
       "inherits": "release-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "emscripten-web",
+      "displayName": "Emscripten Web",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/emscripten-web",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "PLATFORM": "Web"
       }
     }
   ]

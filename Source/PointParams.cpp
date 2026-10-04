@@ -116,7 +116,10 @@ Color PointParams::GetEventColor(Events::EventEnum eventEnum)
 
 Texture2D *PointParams::GetIconTexture(Icon icon)
 {
-    assert(Intialized);
+    if (!Intialized)
+    {
+        return nullptr;
+    }
 
     if (auto it = EventIconsTextureMap.find(icon); it != EventIconsTextureMap.end())
     {

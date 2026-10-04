@@ -13,16 +13,16 @@ namespace
     bool paused = false;
 }
 
-void UI::ControlPanel::Render(Replay::State &state)
+void SLUI::ControlPanel::Render(Replay::State &state)
 {
-    const float scale = UI::GetScale();
+    const float scale = SLUI::GetScale();
 
-    const float positionX = UI::sizes.ToolboxWidth;
+    const float positionX = SLUI::sizes.ToolboxWidth;
     const float width = GetScreenWidth() - positionX;
     const float height = BASE_HEIGHT * scale;
     const float positionY = GetScreenHeight() - height;
-    UI::sizes.ControlPanelHeight = height;
-    UI::positions.ControlPanelY = positionY;
+    SLUI::sizes.ControlPanelHeight = height;
+    SLUI::positions.ControlPanelY = positionY;
 
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
 

@@ -14,11 +14,11 @@ namespace
     float currentWidth = BASE_WIDTH;
 }
 
-void UI::Toolbox::Render(Replay::State &state)
+void SLUI::Toolbox::Render(Replay::State &state)
 {
-    float scale = UI::GetScale();
+    float scale = SLUI::GetScale();
     currentWidth = BASE_WIDTH * scale;
-    UI::sizes.ToolboxWidth = currentWidth;
+    SLUI::sizes.ToolboxWidth = currentWidth;
     ImGui::SetNextWindowSize(ImVec2(currentWidth, ImGui::GetIO().DisplaySize.y), ImGuiCond_Always);
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
@@ -28,6 +28,11 @@ void UI::Toolbox::Render(Replay::State &state)
         ImVec2(FLT_MAX, ImGui::GetIO().DisplaySize.y));
 
     ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
+
+    if(ImGui::Button("Exit"))
+    {
+        state.Exit = true;
+    }
 
     static int highlightedPlayer = -1;
     ImGui::SeparatorText("Players:");

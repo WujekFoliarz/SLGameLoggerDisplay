@@ -8,12 +8,12 @@ namespace Packet
 {
     namespace PlayerLeft
     {
-        #pragma pack(1)
+        #pragma pack(push, 1)
         struct Data
         {
             int32_t PlayerId = -1;
         };
-        #pragma pop(pack)
+        #pragma pack(pop)
 
         Data GetResult(const std::vector<uint8_t>& inputData);
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace UI
+namespace SLUI
 {
     void InitStyle();
 }

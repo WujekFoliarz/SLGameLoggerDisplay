@@ -85,4 +85,5 @@ namespace Rooms
     Texture2D *GetRoomTexture(Rooms::HczRoom room);
     Texture2D *GetRoomTexture(Rooms::EzRoom room);
     Texture2D *GetRoomTexture(Rooms::SurfaceRoom room);
+    void Uninitialize();
 }

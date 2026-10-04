@@ -257,3 +257,198 @@ void Replay::HandlePacket(const Packet::PlayerEscorted::Data &data, State &state
         state.Points.push_back(point);
     }
 }
+
+void Replay::HandlePacket(const Packet::VersionPacket::Data &data, State &state, bool playedInReverse)
+{
+}
+
+void Replay::HandlePacket(const Packet::NtfWave::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::NtfWave;
+    point.Tick = state.CurrentReadTick;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::NtfMiniWave::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::NtfMiniWave;
+    point.Tick = state.CurrentReadTick;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::CIWave::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::CIWave;
+    point.Tick = state.CurrentReadTick;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::CIMiniWave::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::CIMiniWave;
+    point.Tick = state.CurrentReadTick;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::BallThrown::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::BallThrown;
+    point.Tick = state.CurrentReadTick;
+    point.Position = playerIt->second.Position;
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::HitByBall::Data &data, State &state, bool playedInReverse)
+{
+    auto victimIt = state.Players.find(data.VictimId);
+    if (playedInReverse || state.Paused || victimIt == state.Players.end())
+        return;
+
+    auto attackerIt = state.Players.find(data.AttackerId);
+    Events::Point point{};
+    point.Event = Events::EventEnum::HitByBall;
+    point.Tick = state.CurrentReadTick;
+    point.Position = victimIt->second.Position;
+    point.GiverRole = attackerIt != state.Players.end() ? attackerIt->second.Role : Events::RoleTypeId::None;
+    point.GiverNickname = attackerIt != state.Players.end() ? attackerIt->second.Nickname : "";
+    point.ReceiverRole = victimIt->second.Role;
+    point.ReceiverNickname = victimIt->second.Nickname;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::GrenadeThrown::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::GrenadeThrown;
+    point.Tick = state.CurrentReadTick;
+    point.Position = playerIt->second.Position;
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::GrenadeExploded::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    auto playerIt = state.Players.find(data.PlayerId);
+    Events::Point point{};
+    point.Event = Events::EventEnum::GrenadeExploded;
+    point.Tick = state.CurrentReadTick;
+    point.Position = Vector3(data.PositionX, data.PositionY, data.PositionZ);
+    if (playerIt != state.Players.end())
+    {
+        point.GiverRole = playerIt->second.Role;
+        point.GiverNickname = playerIt->second.Nickname;
+        point.ReceiverRole = playerIt->second.Role;
+    }
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::PickingUpItem::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::PickingUpItem;
+    point.Tick = state.CurrentReadTick;
+    point.Position = Vector3(data.PositionX, data.PositionY, data.PositionZ);
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    point.CustomData = data.ItemId;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::FlashGrenadeThrown::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::FlashGrenadeThrown;
+    point.Tick = state.CurrentReadTick;
+    point.Position = playerIt->second.Position;
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::FlashGrenadeExploded::Data &data, State &state, bool playedInReverse)
+{
+    if (playedInReverse || state.Paused)
+        return;
+
+    auto playerIt = state.Players.find(data.PlayerId);
+    Events::Point point{};
+    point.Event = Events::EventEnum::FlashGrenadeExploded;
+    point.Tick = state.CurrentReadTick;
+    point.Position = Vector3(data.PositionX, data.PositionY, data.PositionZ);
+    if (playerIt != state.Players.end())
+    {
+        point.GiverRole = playerIt->second.Role;
+        point.GiverNickname = playerIt->second.Nickname;
+        point.ReceiverRole = playerIt->second.Role;
+    }
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::SCP268Used::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::SCP268Used;
+    point.Tick = state.CurrentReadTick;
+    point.Position = playerIt->second.Position;
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    state.Points.push_back(point);
+}
+
+void Replay::HandlePacket(const Packet::SCP268Expired::Data &data, State &state, bool playedInReverse)
+{
+    auto playerIt = state.Players.find(data.PlayerId);
+    if (playedInReverse || state.Paused || playerIt == state.Players.end())
+        return;
+
+    Events::Point point{};
+    point.Event = Events::EventEnum::SCP268Expired;
+    point.Tick = state.CurrentReadTick;
+    point.Position = playerIt->second.Position;
+    point.GiverRole = playerIt->second.Role;
+    point.GiverNickname = playerIt->second.Nickname;
+    state.Points.push_back(point);
+}

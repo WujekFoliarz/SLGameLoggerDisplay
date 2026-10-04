@@ -1,6 +1,7 @@
 #include "Scale.hpp"
 #include "imgui.h"
 #include <algorithm>
+#include <raylib.h>
 
 namespace
 {
@@ -13,22 +14,21 @@ namespace
     bool initialized = false;
 }
 
-float UI::GetScale()
+float SLUI::GetScale()
 {
-    ImVec2 display = ImGui::GetIO().DisplaySize;
-    float scaleX = display.x / REFERENCE_WIDTH;
-    float scaleY = display.y / REFERENCE_HEIGHT;
+    float scaleX = GetScreenWidth() / REFERENCE_WIDTH;
+    float scaleY = GetScreenHeight() / REFERENCE_HEIGHT;
     return std::min(scaleX, scaleY);
 }
 
-void UI::InitScale()
+void SLUI::InitScale()
 {
     baseStyle = ImGui::GetStyle(); 
     initialized = true;
     lastScale = -1.0f;           
 }
 
-void UI::ApplyScale()
+void SLUI::ApplyScale()
 {
     if (!initialized)
     {

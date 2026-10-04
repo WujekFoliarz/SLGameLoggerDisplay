@@ -315,13 +315,16 @@ std::variant<Rooms::LczRoom, Rooms::HczRoom, Rooms::EzRoom, Rooms::SurfaceRoom> 
     if (roomName == "Surface")
         return Rooms::SurfaceRoom::Surface;
 
-    //std::println("{}", roomName);
+    // std::println("{}", roomName);
     return Rooms::LczRoom::None;
 }
 
 Texture2D *Rooms::GetRoomTexture(Rooms::LczRoom room)
 {
-    assert(Intialized);
+    if (!Intialized)
+    {
+        return nullptr;
+    }
 
     if (auto it = LczRoomTextureMap.find(room); it != LczRoomTextureMap.end())
     {
@@ -333,7 +336,10 @@ Texture2D *Rooms::GetRoomTexture(Rooms::LczRoom room)
 
 Texture2D *Rooms::GetRoomTexture(Rooms::HczRoom room)
 {
-    assert(Intialized);
+    if (!Intialized)
+    {
+        return nullptr;
+    }
 
     if (auto it = HczRoomTextureMap.find(room); it != HczRoomTextureMap.end())
     {
@@ -345,7 +351,10 @@ Texture2D *Rooms::GetRoomTexture(Rooms::HczRoom room)
 
 Texture2D *Rooms::GetRoomTexture(Rooms::EzRoom room)
 {
-    assert(Intialized);
+    if (!Intialized)
+    {
+        return nullptr;
+    }
 
     if (auto it = EzRoomTextureMap.find(room); it != EzRoomTextureMap.end())
     {
@@ -357,7 +366,10 @@ Texture2D *Rooms::GetRoomTexture(Rooms::EzRoom room)
 
 Texture2D *Rooms::GetRoomTexture(Rooms::SurfaceRoom room)
 {
-    assert(Intialized);
+    if (!Intialized)
+    {
+        return nullptr;
+    }
 
     if (auto it = SurfaceRoomTextureMap.find(room); it != SurfaceRoomTextureMap.end())
     {
@@ -365,4 +377,39 @@ Texture2D *Rooms::GetRoomTexture(Rooms::SurfaceRoom room)
     }
 
     return nullptr;
+}
+
+void Rooms::Uninitialize()
+{
+    if (!Intialized)
+    {
+        return;
+    }
+
+    for (auto &[room, texture] : LczRoomTextureMap)
+    {
+        UnloadTexture(texture);
+    }
+
+    for (auto &[room, texture] : HczRoomTextureMap)
+    {
+        UnloadTexture(texture);
+    }
+
+    for (auto &[room, texture] : EzRoomTextureMap)
+    {
+        UnloadTexture(texture);
+    }
+
+    for (auto &[room, texture] : SurfaceRoomTextureMap)
+    {
+        UnloadTexture(texture);
+    }
+
+    LczRoomTextureMap.clear();
+    HczRoomTextureMap.clear();
+    EzRoomTextureMap.clear();
+    SurfaceRoomTextureMap.clear();
+
+    Intialized = false;
 }

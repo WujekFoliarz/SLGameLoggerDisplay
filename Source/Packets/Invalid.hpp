@@ -8,12 +8,12 @@ namespace Packet
 {
     namespace Invalid
     {
-        #pragma pack(1)
+        #pragma pack(push, 1)
         struct Data
         {
             std::string Name = "Unknown";
         };
-        #pragma pop(pack)
+        #pragma pack(pop)
 
         Data GetResult(const std::string& eventName);
     }

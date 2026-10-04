@@ -65,6 +65,7 @@ namespace Replay
         AnnounceLog::AnnounceLog Log;
         bool Paused = false;
         int HighlightedPlayer = -1;
+        bool Exit = false;
 
         std::vector<RoomData> RoomPositions;
         std::unordered_map<int, Player::Data> Players;
@@ -90,4 +91,18 @@ namespace Replay
     void HandlePacket(const Packet::FiringMicroHid::Data &data, State &state, bool playedInReverse);
     void HandlePacket(const Packet::PlayerEscaped::Data &data, State &state, bool playedInReverse);
     void HandlePacket(const Packet::PlayerEscorted::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::VersionPacket::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::NtfWave::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::NtfMiniWave::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::CIWave::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::CIMiniWave::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::BallThrown::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::HitByBall::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::GrenadeThrown::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::GrenadeExploded::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::PickingUpItem::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::FlashGrenadeThrown::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::FlashGrenadeExploded::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::SCP268Used::Data &data, State &state, bool playedInReverse);
+    void HandlePacket(const Packet::SCP268Expired::Data &data, State &state, bool playedInReverse);
 }
