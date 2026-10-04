@@ -50,13 +50,36 @@ if(MINGW)
     find_file(OPENSSL_SSL_DLL NAMES libssl-3-x64.dll libssl-3.dll PATHS "${OPENSSL_ROOT_DIR}/bin" "${CMAKE_FIND_ROOT_PATH}/bin" NO_DEFAULT_PATH)
     find_file(MINGW_SSP_DLL NAMES libssp-0.dll PATHS "${OPENSSL_ROOT_DIR}/bin" "${CMAKE_FIND_ROOT_PATH}/bin" NO_DEFAULT_PATH)
 
-    if(NOT OPENSSL_CRYPTO_DLL OR NOT OPENSSL_SSL_DLL OR NOT MINGW_SSP_DLL)
-        message(FATAL_ERROR "Could not find MinGW OpenSSL runtime DLLs under ${OPENSSL_ROOT_DIR}/bin")
+    if(NOT OPENSSL_CRYPTO_DLL OR NOT OPENSSL_SSL_DLL)
+        message(FATAL_ERROR
+            "Could not find OpenSSL runtime DLLs under ${OPENSSL_ROOT_DIR}/bin "
+            "(crypto: ${OPENSSL_CRYPTO_DLL}, ssl: ${OPENSSL_SSL_DLL})"
+        )
     endif()
 
+    execute_process(
+        COMMAND "${CMAKE_OBJDUMP}" -p "${OPENSSL_CRYPTO_DLL}" "${OPENSSL_SSL_DLL}"
+        OUTPUT_VARIABLE OPENSSL_DLL_IMPORTS
+        RESULT_VARIABLE OPENSSL_OBJDUMP_RESULT
+    )
+    
+    if(NOT OPENSSL_OBJDUMP_RESULT EQUAL 0)
+        message(FATAL_ERROR "Could not inspect OpenSSL runtime DLL imports with ${CMAKE_OBJDUMP}")
+    endif()
+    if(OPENSSL_DLL_IMPORTS MATCHES "DLL Name: libssp-0\\.dll" AND NOT MINGW_SSP_DLL)
+        message(FATAL_ERROR
+            "The selected OpenSSL DLLs require libssp-0.dll, but it was not found under "
+            "${OPENSSL_ROOT_DIR}/bin or ${CMAKE_FIND_ROOT_PATH}/bin"
+        )
+    endif()
+
+    set(MINGW_RUNTIME_DLLS "${OPENSSL_CRYPTO_DLL}" "${OPENSSL_SSL_DLL}")
+    if(MINGW_SSP_DLL)
+        list(APPEND MINGW_RUNTIME_DLLS "${MINGW_SSP_DLL}")
+    endif()
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${OPENSSL_CRYPTO_DLL}" "${OPENSSL_SSL_DLL}" "${MINGW_SSP_DLL}"
+            ${MINGW_RUNTIME_DLLS}
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
         COMMENT "Copying OpenSSL runtime DLLs beside ${PROJECT_NAME}"
     )
