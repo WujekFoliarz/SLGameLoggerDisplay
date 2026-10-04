@@ -16,7 +16,8 @@ void SLUI::AnnounceLog::Render(Replay::State &state)
     int posX = SLUI::sizes.ToolboxWidth;
     int posY = SLUI::positions.ControlPanelY - (SLUI::sizes.ControlPanelHeight / 2);
 
-    auto textSize = state.Log.Draw(0, 0, kBaseTextSize * scale, true);
-    DrawRectangle(posX + padding, posY - padding - textSize.y + (kBaseTextSize * scale), textSize.x, textSize.y, Color(58, 58, 58, 128));
-    state.Log.Draw(posX + padding + 5, posY - padding - textSize.y + (kBaseTextSize * scale), kBaseTextSize * scale);
+    const int textPosX = posX + padding + 5;
+    auto textSize = state.Log.Draw(textPosX, 0, kBaseTextSize * scale, true);
+    DrawRectangle(posX + padding, posY - padding - textSize.y + (kBaseTextSize * scale), textSize.x + 5, textSize.y, Color(0, 0, 170, 128));
+    state.Log.Draw(textPosX, posY - padding - textSize.y + (kBaseTextSize * scale), kBaseTextSize * scale);
 }

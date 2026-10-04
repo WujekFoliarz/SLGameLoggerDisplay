@@ -170,6 +170,8 @@ namespace Events
         std::string ReceiverNickname = "";
         std::string CustomData = "";
         PointParams::Icon Icon = PointParams::Icon::None;
+        bool UseDotInsteadOfIcon = false;
+        Color IconColor = WHITE;
         bool Handled = false;
         Damage::Type DmgType = Damage::Type::Unknown;
         int Id = 0;

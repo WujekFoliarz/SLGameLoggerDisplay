@@ -4,16 +4,24 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include "Fonts.hpp"
+
+AnnounceLog::AnnounceLog::AnnounceLog()
+{
+    m_AdvanceSpeed = 0.070;
+}
 
 Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hideText)
 {
     Vector2 overallSize = Vector2(0.0f, 0.0f);
     const std::string text = GetFullText();
 
-    const float spacing = 5.0f;
+    const float spacing = 1.0f;
     const int startX = posX;
+    const Font font = Fonts::GetFont(Fonts::FontType::GoodOldDos);
 
-    Color color = WHITE;
+    static const Color defColor = Color(150,150,150,255);
+    Color color = defColor;
     std::string currentTextSegment;
 
     auto flushText = [&]()
@@ -24,7 +32,7 @@ Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hid
         if (!hideText)
         {
             DrawTextEx(
-                GetFontDefault(),
+                font,
                 currentTextSegment.c_str(),
                 {static_cast<float>(posX), static_cast<float>(posY)},
                 scale,
@@ -33,14 +41,14 @@ Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hid
         }
 
         Vector2 textSize = MeasureTextEx(
-            GetFontDefault(),
+            font,
             currentTextSegment.c_str(),
             scale,
             spacing);
 
         posX += static_cast<int>(std::round(textSize.x));
 
-        overallSize.x = std::max(static_cast<int>(overallSize.x), posX);
+        overallSize.x = std::max(static_cast<int>(overallSize.x), posX - startX);
         overallSize.y = std::max(static_cast<int>(overallSize.y), posY);
         int count = std::count(currentTextSegment.begin(), currentTextSegment.end(), '\n');
 
@@ -48,16 +56,19 @@ Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hid
     };
 
     const float lineHeight = scale;
+    auto startNewLine = [&]()
+    {
+        flushText();
+        posX = startX;
+        posY += static_cast<int>(std::round(lineHeight));
+    };
 
     for (size_t i = 0; i < text.size();)
     {
         if (text[i] == '\n')
         {
-            flushText();
-
-            posX = startX;
-            posY += static_cast<int>(std::round(lineHeight));
-            color = WHITE;
+            startNewLine();
+            color = defColor;
 
             ++i;
             continue;
@@ -117,6 +128,13 @@ Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hid
             i = end;
 
             continue;
+        }
+
+        std::string nextTextSegment = currentTextSegment + text[i];
+        if (!currentTextSegment.empty() &&
+            posX + MeasureTextEx(font, nextTextSegment.c_str(), scale, spacing).x > GetScreenWidth())
+        {
+            startNewLine();
         }
 
         currentTextSegment += text[i];

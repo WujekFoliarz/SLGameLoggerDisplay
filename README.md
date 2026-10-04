@@ -8,6 +8,7 @@
 - C++23
 - Git
 - Raylib's dependencies
+- OpenSSL 3 development files for native builds (required to fetch the hosted server list over HTTPS)
 
 ## Build on Linux
 

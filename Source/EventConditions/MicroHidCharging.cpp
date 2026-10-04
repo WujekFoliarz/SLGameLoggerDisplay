@@ -13,7 +13,7 @@ ConditionChecker::ConditionCheckResult EventConditions::MicroHidCharging::GetRes
         return result;
     }
 
-    result.AnnounceLogMessage = std::format("Player [{}] {} has started charging MicroHID", Events::RoleTypeIdToStringColorFormatted(point.GiverRole), point.ReceiverNickname);
+    result.AnnounceLogMessage = std::format("Player [{}] {} has started charging MicroHID", Events::RoleTypeIdToStringColorFormatted(point.GiverRole), point.GiverNickname);
 
     return result;
 }

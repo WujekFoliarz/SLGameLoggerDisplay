@@ -7,6 +7,6 @@ ConditionChecker::ConditionCheckResult EventConditions::BallThrown::GetResult(co
     result.UseDotInsteadOfIcon = true;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);
     if (!point.Handled)
-        result.AnnounceLogMessage = std::format("Player {} threw a ball", point.GiverNickname);
+        result.AnnounceLogMessage = std::format("Player [{}] {} threw a ball", Events::RoleTypeIdToStringColorFormatted(point.GiverRole), point.GiverNickname);
     return result;
 }

@@ -6,24 +6,33 @@ file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Sour
 
 #add_library(${PROJECT_NAME} SHARED ${MY_SOURCES})
 add_executable(${PROJECT_NAME} ${MY_SOURCES})
+if(WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
-#target_precompile_headers(${PROJECT_NAME} PRIVATE src/pch.hpp)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-set(PRODUCTION_BUILD OFF)
+option(PRODUCTION_BUILD "Build with resources loaded relative to the executable" ON)
 if(EMSCRIPTEN)
     target_link_options(${PROJECT_NAME} PRIVATE "--preload-file=${CMAKE_CURRENT_SOURCE_DIR}/Resources@/Resources")
     target_compile_definitions(${PROJECT_NAME} PRIVATE RESOURCE_PATH="/Resources/")
 elseif(PRODUCTION_BUILD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC PRODUCTION_BUILD)
     target_compile_definitions(${PROJECT_NAME} PRIVATE RESOURCE_PATH="Resources/")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/Resources"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Resources"
+        COMMENT "Copying resources beside ${PROJECT_NAME}"
+    )
 else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE RESOURCE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/Resources/")
 endif()
 
 # -- Libraries --
 set(NLOHMANN_JSON_TARGET_NAME json)
-set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF CACHE BOOL "Disable optional OpenSSL support" FORCE)
+set(HTTPLIB_REQUIRE_OPENSSL ON CACHE BOOL "Require OpenSSL for HTTPS requests" FORCE)
+set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE ON CACHE BOOL "Enable OpenSSL support for HTTPS" FORCE)
 set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF CACHE BOOL "Disable optional zlib support" FORCE)
 set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF CACHE BOOL "Disable optional Brotli support" FORCE)
 set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF CACHE BOOL "Disable optional zstd support" FORCE)
@@ -37,6 +46,20 @@ add_subdirectory("Thirdparty/cpp-httplib")
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib json imgui rlimgui httplib)
 if(MINGW)
     target_link_libraries(${PROJECT_NAME} PRIVATE stdc++exp)
+    find_file(OPENSSL_CRYPTO_DLL NAMES libcrypto-3-x64.dll libcrypto-3.dll PATHS "${OPENSSL_ROOT_DIR}/bin" "${CMAKE_FIND_ROOT_PATH}/bin" NO_DEFAULT_PATH)
+    find_file(OPENSSL_SSL_DLL NAMES libssl-3-x64.dll libssl-3.dll PATHS "${OPENSSL_ROOT_DIR}/bin" "${CMAKE_FIND_ROOT_PATH}/bin" NO_DEFAULT_PATH)
+    find_file(MINGW_SSP_DLL NAMES libssp-0.dll PATHS "${OPENSSL_ROOT_DIR}/bin" "${CMAKE_FIND_ROOT_PATH}/bin" NO_DEFAULT_PATH)
+
+    if(NOT OPENSSL_CRYPTO_DLL OR NOT OPENSSL_SSL_DLL OR NOT MINGW_SSP_DLL)
+        message(FATAL_ERROR "Could not find MinGW OpenSSL runtime DLLs under ${OPENSSL_ROOT_DIR}/bin")
+    endif()
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${OPENSSL_CRYPTO_DLL}" "${OPENSSL_SSL_DLL}" "${MINGW_SSP_DLL}"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+        COMMENT "Copying OpenSSL runtime DLLs beside ${PROJECT_NAME}"
+    )
 endif()
 # -- Extension --
 # set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".asi")

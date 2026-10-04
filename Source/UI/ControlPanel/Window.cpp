@@ -32,7 +32,8 @@ void SLUI::ControlPanel::Render(Replay::State &state)
                  ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_NoResize |
-                     ImGuiWindowFlags_NoTitleBar);
+                     ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoScrollbar);
 
     float progress = 0.0f;
 
@@ -45,10 +46,10 @@ void SLUI::ControlPanel::Render(Replay::State &state)
 
     if (ImGui::SliderFloat("##Timeline", &progress, 0.0f, 1.0f, "", ImGuiSliderFlags_AlwaysClamp))
     {
-        state.CurrentTick = static_cast<int>(
-            progress * state.TickCount);
+        state.CurrentTick = static_cast<int>(progress * state.TickCount);
         state.Log.Clear();
         state.Points.clear();
+        state.VisiblePoints = 0;
     }
 
     if (ImGui::Button(paused ? "Play" : "Pause"))
@@ -56,13 +57,6 @@ void SLUI::ControlPanel::Render(Replay::State &state)
         paused = !paused;
     }
     state.Paused = paused;
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("|<"))
-    {
-        state.CurrentTick = 0;
-    }
 
     ImGui::SameLine();
 
@@ -76,13 +70,6 @@ void SLUI::ControlPanel::Render(Replay::State &state)
     if (ImGui::Button(">"))
     {
         state.CurrentTick = (state.CurrentTick < state.TickCount) ? state.CurrentTick + 1 : state.TickCount;
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button(">|"))
-    {
-        state.CurrentTick = state.TickCount;
     }
 
     ImGui::SameLine();

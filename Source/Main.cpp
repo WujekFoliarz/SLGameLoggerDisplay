@@ -1,6 +1,7 @@
 #include "ReplayPlayer.hpp"
 #include "ServerBrowser.hpp"
 #include "UI/UI.hpp"
+#include "Fonts.hpp"
 #include <print>
 
 int main()
@@ -12,6 +13,7 @@ int main()
     SetExitKey(0);
 
     SLUI::Initialize();
+    Fonts::Initialize();
     Replay::ReplayPlayer player = {};
     Server::Browser browser = {};
 

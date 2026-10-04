@@ -10,7 +10,7 @@
 
 namespace
 {
-    constexpr float BASE_WIDTH = 300.0f;
+    constexpr float BASE_WIDTH = 350.0f;
     float currentWidth = BASE_WIDTH;
 }
 

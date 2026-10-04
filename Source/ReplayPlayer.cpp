@@ -22,16 +22,21 @@
 namespace
 {
     constexpr std::array<uint8_t, 7> kReplayMagic{6, 's', 'l', 'd', 'e', 'm', 'o'};
+    float outsideScale = 1.2260439f;
+    Vector2 outsideOffset = {256.0f, 56.5f};
+    Texture2D StripeTexture;
 }
-
-float outsideScale = 1.2260439f;
-Vector2 outsideOffset = {256.0f, 56.5f};
 
 Replay::ReplayPlayer::ReplayPlayer()
 {
     PointParams::Initialize();
     Rooms::Initialize();
     SLUI::Initialize();
+
+    if (!IsTextureValid(StripeTexture))
+    {
+        StripeTexture = LoadTexture(RESOURCE_PATH "General/Stripes.png");
+    }
 }
 
 Replay::ReplayPlayer::~ReplayPlayer()
@@ -43,6 +48,7 @@ Replay::ReplayPlayer::FileLoadResult Replay::ReplayPlayer::LoadFromFile(const st
 {
     m_ReplayState.Exit = false;
     m_ReplayState.Points.clear();
+    m_ReplayState.VisiblePoints = 0;
 
     FILE *file = std::fopen(filePath.c_str(), "rb");
     if (file == nullptr)
@@ -276,14 +282,15 @@ void Replay::ReplayPlayer::ProcessTicks()
         m_ReplayState.PreviousTick = m_ReplayState.CurrentTick;
     // else if (m_ReplayState.Paused && m_ReplayState.CurrentTick != m_ReplayState.PreviousTick)
     // m_ReplayState.PreviousTick = m_ReplayState.CurrentTick - 2;
-    m_ReplayState.Log.AdvanceText(GetFrameTime());
+    m_ReplayState.Log.AdvanceText(GetFrameTime() * m_ReplayState.PlaySpeed);
 }
 
 void Replay::ReplayPlayer::Render()
 {
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground({1, 3, 20, 255});
 
+    m_ReplayState.VisiblePoints = std::min(m_ReplayState.VisiblePoints, m_ReplayState.Points.size());
     while (m_ReplayState.VisiblePoints < m_ReplayState.Points.size() && m_ReplayState.Points[m_ReplayState.VisiblePoints].Tick <= m_ReplayState.CurrentTick)
     {
         m_ReplayState.VisiblePoints++;
@@ -318,7 +325,7 @@ void Replay::ReplayPlayer::Render()
             }
             if (Locations::GetZoneFromHeight(roomData.Position.y) == Locations::Zone::HczEz)
             {
-                texPixelY += 110;
+                texPixelY += 150;
             }
 
             float screenX = m_ReplayState.Origin.x + texPixelX * m_ReplayState.TotalScale;
@@ -339,7 +346,7 @@ void Replay::ReplayPlayer::Render()
                 Rectangle dest = {isOutside ? screenXOutside : screenX, isOutside ? screenYOutside : screenY, textureWidth, textureHeight};
                 Vector2 origin = {textureWidth * 0.5f, textureHeight * 0.5f};
 
-                DrawTexturePro(*roomTexture, source, dest, origin, rotationDeg, Color(255, 255, 255, 200));
+                DrawTexturePro(*roomTexture, source, dest, origin, rotationDeg, Color(176, 180, 217, 255));
             }
             else
                 DrawText(roomData.Name.c_str(), screenX, screenY, 2 * m_ReplayState.TotalScale, YELLOW);
@@ -348,19 +355,30 @@ void Replay::ReplayPlayer::Render()
 
     // Render points
     {
-        std::vector<int> pointsForRemoval;
         for (size_t i = 0; i < m_ReplayState.VisiblePoints; i++)
         {
-            auto zone = Locations::GetZoneFromHeight(m_ReplayState.Points[i].Position.y);
             auto &p = m_ReplayState.Points[i];
-            p.Id = i;
 
             if (p.Opacity <= 0.0f)
             {
-                pointsForRemoval.push_back(i);
                 continue;
             }
 
+            if (!p.Handled)
+            {
+                auto eventResult = ConditionChecker::GetResult(p);
+                p.Icon = eventResult.Icon;
+                p.UseDotInsteadOfIcon = eventResult.UseDotInsteadOfIcon;
+                p.IconColor = eventResult.IconColor;
+                p.Handled = true;
+
+                if (!eventResult.AnnounceLogMessage.empty())
+                {
+                    m_ReplayState.Log.ShowText(Utils::GetRoundTimeString(p.Tick, m_ReplayState.TickRate) + " " + eventResult.AnnounceLogMessage);
+                }
+            }
+
+            auto zone = Locations::GetZoneFromHeight(p.Position.y);
             float dx = p.Position.x;
             float dz = p.Position.z;
 
@@ -369,7 +387,7 @@ void Replay::ReplayPlayer::Render()
 
             if (zone == Locations::Zone::HczEz)
             {
-                texPixelY += 110;
+                texPixelY += 150;
             }
             else if (zone == Locations::Zone::Outside)
             {
@@ -380,46 +398,43 @@ void Replay::ReplayPlayer::Render()
             float screenX = m_ReplayState.Origin.x + texPixelX * m_ReplayState.TotalScale;
             float screenY = m_ReplayState.Origin.y + texPixelY * m_ReplayState.TotalScale;
             // std::println("outside x: {} | outside y: {} | outside scale: {}", outsideOffset.x, outsideOffset.y, outsideScale);
-
             float radius = std::clamp(5.5f * m_ReplayState.Zoom, 1.5f, 50.0f);
-
             auto fadeOut = (unsigned char)std::max(0, std::min(255, (int)std::floor(p.Opacity * 256.0)));
-            auto eventResult = ConditionChecker::GetResult(p);
-            p.Handled = true;
 
-            auto iconTexture = PointParams::GetIconTexture(eventResult.Icon);
-            if (eventResult.UseDotInsteadOfIcon || iconTexture == nullptr)
+            auto iconTexture = PointParams::GetIconTexture(p.Icon);
+            const float drawWidth = p.UseDotInsteadOfIcon || iconTexture == nullptr ? radius : iconTexture->width * 0.5f;
+            const float drawHeight = p.UseDotInsteadOfIcon || iconTexture == nullptr ? radius : iconTexture->height * 0.5f;
+            const bool isOnScreen =
+                screenX + drawWidth >= 0.0f && screenX - drawWidth < GetScreenWidth() &&
+                screenY + drawHeight >= 0.0f && screenY - drawHeight < GetScreenHeight();
+
+            if (isOnScreen && (p.UseDotInsteadOfIcon || iconTexture == nullptr))
             {
-                DrawCircle(static_cast<int>(screenX), static_cast<int>(screenY), radius, Color{eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
+                DrawCircle(static_cast<int>(screenX), static_cast<int>(screenY), radius, Color{p.IconColor.r, p.IconColor.g, p.IconColor.b, fadeOut});
             }
-            else
+            else if (isOnScreen)
             {
-
-                float textureWidth = iconTexture->width * 0.5f;
-                float textureHeight = iconTexture->height * 0.5f;
-
+                float textureWidth = drawWidth;
+                float textureHeight = drawHeight;
                 Rectangle source = {0.0f, 0.0f, (float)iconTexture->width, (float)iconTexture->height};
                 Rectangle dest = {screenX, screenY, textureWidth, textureHeight};
                 Vector2 origin = {textureWidth * 0.5f, textureHeight * 0.5f};
-
-                DrawTexturePro(*iconTexture, source, dest, origin, 0, {eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
-                // DrawTextureEx(*iconTexture, Vector2(screenX, screenY), 0.0f, 0.5f, {eventResult.IconColor.r, eventResult.IconColor.g, eventResult.IconColor.b, fadeOut});
-            }
-
-            if (!eventResult.AnnounceLogMessage.empty())
-            {
-                m_ReplayState.Log.ShowText(Utils::GetRoundTimeString(p.Tick, m_ReplayState.TickRate) + " " + eventResult.AnnounceLogMessage);
+                DrawTexturePro(*iconTexture, source, dest, origin, 0, {p.IconColor.r, p.IconColor.g, p.IconColor.b, fadeOut});
             }
 
             p.Opacity -= PointParams::GetDecayRate(p.Event) * GetFrameTime();
         }
 
-        for (auto index : pointsForRemoval)
-        {
-            std::erase_if(m_ReplayState.Points, [index](const Events::Point &x)
-                          { return x.Id == index; });
-        }
-        pointsForRemoval.clear();
+        auto visibleEnd = m_ReplayState.Points.begin() + m_ReplayState.VisiblePoints;
+        auto retainedEnd = std::remove_if(
+            m_ReplayState.Points.begin(),
+            visibleEnd,
+            [](const Events::Point &point)
+            {
+                return point.Opacity <= 0.0f;
+            });
+        m_ReplayState.VisiblePoints -= static_cast<size_t>(std::distance(retainedEnd, visibleEnd));
+        m_ReplayState.Points.erase(retainedEnd, visibleEnd);
     }
 
     // Render player rectangles
@@ -445,7 +460,7 @@ void Replay::ReplayPlayer::Render()
 
             if (zone == Locations::Zone::HczEz)
             {
-                texPixelY += 110;
+                texPixelY += 150;
             }
             else if (zone == Locations::Zone::Outside)
             {
@@ -469,12 +484,17 @@ void Replay::ReplayPlayer::Render()
 
             if (id == m_ReplayState.HighlightedPlayer)
             {
-                Rectangle destLarger = {screenX, screenY, textureWidth * 2.0f, textureHeight * 2.0f};
-                Vector2 originLarger = {destLarger.width * 0.5f, destLarger.height * 0.5f};
                 float alpha = 152.5f + 102.5f * sinf(GetTime() * 10.0f);
                 DrawPolyLinesEx(Vector2(screenX, screenY), 3, 30.0f, rotationDeg + 90.0f, 5.0f, Color(255, 255, 0, alpha));
             }
         }
+    }
+
+    // Stripe effect
+    {
+        Rectangle stripeSource = {0.0f, -static_cast<float>(GetTime()) * 300.0f, static_cast<float>(StripeTexture.width), static_cast<float>(StripeTexture.height)};
+        Rectangle stripeDestination = {0.0f, 0.0f, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight())};
+        DrawTexturePro(StripeTexture, stripeSource, stripeDestination, {0.0f, 0.0f}, 0.0f, {128,128,128,20});
     }
 
     // Draw UI

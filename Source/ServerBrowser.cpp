@@ -13,7 +13,7 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "UI/Scale.hpp"
-
+#include "Fonts.hpp"
 
 Server::Browser::Browser()
 {
@@ -131,9 +131,9 @@ void Server::Browser::Render()
 
     static constexpr int kBaseHeaderTextScale = 100;
     int headerTextScale = kBaseHeaderTextScale * SLUI::GetScale();
-    auto headerTextSize = MeasureTextEx(GetFontDefault(), "SCP: SL Replay Player", headerTextScale, 5);
-    int headerTextPosY = 50;
-    DrawText("SCP: SL Replay Player", (screenWidth / 2) - (headerTextSize.x / 2), headerTextPosY, headerTextScale, WHITE);
+    auto headerTextSize = MeasureTextEx(Fonts::GetFont(Fonts::FontType::TwoWeekendGoSemibold), "SCP: SL Replay Player", headerTextScale, 5);
+    float headerTextPosY = 50;
+    DrawTextEx(Fonts::GetFont(Fonts::FontType::TwoWeekendGoSemibold), "SCP: SL Replay Player", {(screenWidth / 2) - (headerTextSize.x / 2), headerTextPosY}, headerTextScale, 5, WHITE);
 
     int panelPosY = headerTextPosY + 10;
     Rectangle panelRectangle = {};
@@ -155,14 +155,11 @@ void Server::Browser::Render()
         static constexpr int kBaseServerTextScale = 48;
         int serverTextScale = kBaseServerTextScale * SLUI::GetScale();
         const std::string emptyText = "No servers available";
-        const std::string hintText = "Check ServerList.txt or start the replay server.";
         const auto emptySize = MeasureTextEx(GetFontDefault(), emptyText.c_str(), serverTextScale, 5);
-        const auto hintSize = MeasureTextEx(GetFontDefault(), hintText.c_str(), serverTextScale * 0.7f, 5);
         const float centerX = panelRectangle.x + (panelRectangle.width / 2.0f);
         const float centerY = panelRectangle.y + (panelRectangle.height / 2.0f);
 
         DrawText(emptyText.c_str(), centerX - (emptySize.x / 2.0f), centerY - 20.0f, serverTextScale, WHITE);
-        DrawText(hintText.c_str(), centerX - (hintSize.x / 2.0f), centerY + emptySize.y + 10.0f, static_cast<int>(serverTextScale * 0.7f), WHITE);
         EndDrawing();
         return;
     }
@@ -170,7 +167,7 @@ void Server::Browser::Render()
     static constexpr int kBaseServerTextScale = 50;
     int serverTextScale = kBaseServerTextScale * SLUI::GetScale();
     constexpr float padding = 5.0f;
-    const int linePosX = static_cast<int>(panelRectangle.x + 30.0f);
+    const float linePosX = static_cast<int>(panelRectangle.x + 30.0f);
     const float listTop = panelRectangle.y + 10.0f;
     const float listBottom = panelRectangle.y + panelRectangle.height - 10.0f;
     const float listHeight = listBottom - listTop;
@@ -244,7 +241,6 @@ void Server::Browser::Render()
         {
             m_ServerListDragging = false;
         }
-
     }
     else
     {
@@ -278,7 +274,7 @@ void Server::Browser::Render()
             DrawRectangleRec(header.Rect, Color(128, 128, 128, 100));
 
         DrawLine(linePosX, static_cast<int>(rowY), linePosX + static_cast<int>(header.Rect.width), static_cast<int>(rowY), WHITE);
-        DrawText(header.Motd.c_str(), linePosX, static_cast<int>(rowY + padding / 2.0f), serverTextScale, WHITE);
+        DrawTextEx(Fonts::GetFont(Fonts::FontType::TwoWeekendGoRegular), header.Motd.c_str(), {linePosX, rowY + padding / 2.0f}, serverTextScale, 5, WHITE);
         DrawLine(linePosX, static_cast<int>(rowY + rowHeight), linePosX + static_cast<int>(header.Rect.width), static_cast<int>(rowY + rowHeight), WHITE);
     }
 
@@ -330,11 +326,10 @@ std::vector<std::string> Server::Browser::GetServerList()
 {
     std::vector<std::string> list;
 
-    std::ifstream serverListFile("ServerList.txt");
-    if (serverListFile.is_open())
+    const auto appendServers = [&list](std::istream &serverList)
     {
         std::string line;
-        while (std::getline(serverListFile, line))
+        while (std::getline(serverList, line))
         {
             std::stringstream lineStream(line);
             std::string candidate;
@@ -347,22 +342,49 @@ std::vector<std::string> Server::Browser::GetServerList()
 
                 if (!candidate.empty() && candidate.find("http://") == 0)
                 {
-                    list.push_back(candidate);
+                    if (std::find(list.begin(), list.end(), candidate) == list.end())
+                    {
+                        list.push_back(candidate);
+                    }
                 }
             }
         }
-    }
-
-    if (!list.empty())
-    {
-        return list;
-    }
-
-    return {
-        "http://localhost:8082/",
-        "http://127.0.0.1:8082/",
-        "http://[::1]:8082/"
     };
+
+    std::ifstream serverListFile("ServerList.txt");
+    if (serverListFile.is_open())
+    {
+        appendServers(serverListFile);
+    }
+
+    try
+    {
+        httplib::Client client("http://raw.githubusercontent.com");
+        client.set_connection_timeout(3, 0);
+        client.set_read_timeout(3, 0);
+        client.set_follow_location(true);
+
+        const auto response = client.Get("/WujekFoliarz/SLGameLoggerDisplay/main/ServerList.txt");
+        if (response && response->status == 200)
+        {
+            std::istringstream remoteServerList(response->body);
+            appendServers(remoteServerList);
+        }
+        else if (response)
+        {
+            std::println("Remote server list request failed: HTTP {}", response->status);
+        }
+        else
+        {
+            std::println("Remote server list request failed: {}", httplib::to_string(response.error()));
+        }
+    }
+    catch (const std::exception &e)
+    {
+        std::println("Remote server list request failed: {}", e.what());
+    }
+
+    return list;
 }
 
 void Server::Browser::RefreshServerHeaders()
@@ -574,7 +596,7 @@ void Server::Browser::RenderReplayFileList()
         header.Rect.height = itemHeight;
 
         DrawLine(posX, currentY, endPosX, currentY, WHITE);
-        DrawText(header.FileName.c_str(), posX + padding, currentY + padding, headerTextScale, WHITE);
+        DrawTextEx(Fonts::GetFont(Fonts::FontType::TwoWeekendGoRegular), header.FileName.c_str(), {posX + padding, currentY + padding}, headerTextScale, 5, WHITE);
 
         DrawLine(posX, currentY + itemHeight, endPosX, currentY + itemHeight, WHITE);
         currentY += itemHeight;

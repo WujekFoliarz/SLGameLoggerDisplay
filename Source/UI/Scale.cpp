@@ -44,6 +44,15 @@ void SLUI::ApplyScale()
     ImGuiStyle &style = ImGui::GetStyle();
     style = baseStyle;         
     style.ScaleAllSizes(scale); 
+    auto scaleBorder = [scale](float borderSize)
+    {
+        return borderSize > 0.0f ? std::max(borderSize * scale, 1.0f) : 0.0f;
+    };
+    style.WindowBorderSize = scaleBorder(baseStyle.WindowBorderSize);
+    style.ChildBorderSize = scaleBorder(baseStyle.ChildBorderSize);
+    style.PopupBorderSize = scaleBorder(baseStyle.PopupBorderSize);
+    style.FrameBorderSize = scaleBorder(baseStyle.FrameBorderSize);
+    style.TabBorderSize = scaleBorder(baseStyle.TabBorderSize);
     ImGui::GetIO().FontGlobalScale = scale * BASE_SCALE_MULTIPLIER;
 
     lastScale = scale;

@@ -41,6 +41,7 @@ namespace PointParams
         PlayerPosition,
         FlashbangExploded,
         FlashbangThrown,
+        BallThrown,
         Count
     };
 
@@ -86,6 +87,8 @@ namespace PointParams
             return "FlashbangExploded";
         case Icon::FlashbangThrown:
             return "FlashbangThrown";
+        case Icon::BallThrown:
+            return "BallThrown";
         }
 
         return "Unknown";

@@ -6,15 +6,21 @@ void SLUI::InitStyle()
 {
     ImGuiStyle &style = ImGui::GetStyle();
     ImVec4 *colors = style.Colors;
+    ImGuiIO &io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+    auto font = io.Fonts->AddFontFromFileTTF(RESOURCE_PATH "Fonts/Good-Old-Dos.ttf", 15);
+    io.Fonts->Build();
+    ImGui::PushFont(font);
 
     // --- Layout / shape -----------------------------------------------------
-    style.WindowRounding = 2.0f;
-    style.ChildRounding = 2.0f;
-    style.FrameRounding = 1.0f;
-    style.PopupRounding = 2.0f;
-    style.ScrollbarRounding = 2.0f;
-    style.GrabRounding = 1.0f;
-    style.TabRounding = 1.0f;
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.TabRounding = 0.0f;
 
     style.WindowBorderSize = 1.0f;
     style.ChildBorderSize = 1.0f;
@@ -22,38 +28,32 @@ void SLUI::InitStyle()
     style.FrameBorderSize = 1.0f;
     style.TabBorderSize = 1.0f;
 
-    style.WindowPadding = ImVec2(10, 10);
-    style.FramePadding = ImVec2(8, 4);
-    style.ItemSpacing = ImVec2(8, 6);
-    style.ItemInnerSpacing = ImVec2(6, 4);
-    style.IndentSpacing = 18.0f;
-    style.ScrollbarSize = 14.0f;
-    style.GrabMinSize = 10.0f;
+    style.WindowPadding = ImVec2(8, 8);
+    style.FramePadding = ImVec2(6, 3);
+    style.ItemSpacing = ImVec2(6, 4);
+    style.ItemInnerSpacing = ImVec2(4, 3);
+    style.IndentSpacing = 16.0f;
+    style.ScrollbarSize = 12.0f;
+    style.GrabMinSize = 8.0f;
 
-    style.WindowTitleAlign = ImVec2(0.02f, 0.5f);
+    style.WindowTitleAlign = ImVec2(0.0f, 0.5f);
 
     // --- Palette -------------------------------------------------------------
-    // Base: near-black / charcoal, like the SCP:SL escape-menu and pause overlay
-    const ImVec4 bgDark = ImVec4(0.06f, 0.06f, 0.07f, 0.95f);
-    const ImVec4 bgPanel = ImVec4(0.09f, 0.09f, 0.10f, 0.95f);
-    const ImVec4 bgFrame = ImVec4(0.12f, 0.11f, 0.12f, 1.00f);
-    const ImVec4 bgFrameHover = ImVec4(0.20f, 0.10f, 0.10f, 1.00f);
-    const ImVec4 bgFrameActive = ImVec4(0.30f, 0.09f, 0.09f, 1.00f);
+    // Classic DOS terminal palette: black screen, blue panels, cyan highlights.
+    const ImVec4 bgDark = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    const ImVec4 bgPanel = ImVec4(0.00f, 0.00f, 0.45f, 1.00f);
+    const ImVec4 bgFrame = ImVec4(0.00f, 0.00f, 0.30f, 1.00f);
+    const ImVec4 bgFrameHover = ImVec4(0.00f, 0.35f, 0.45f, 1.00f);
+    const ImVec4 bgFrameActive = ImVec4(0.00f, 0.55f, 0.60f, 1.00f);
 
-    // Accent: SCP Foundation red / containment-warning red
-    const ImVec4 red = ImVec4(0.72f, 0.11f, 0.11f, 1.00f);
-    const ImVec4 redBright = ImVec4(0.85f, 0.16f, 0.14f, 1.00f);
-    const ImVec4 redDim = ImVec4(0.45f, 0.08f, 0.08f, 1.00f);
+    const ImVec4 cyan = ImVec4(0.33f, 1.00f, 1.00f, 1.00f);
+    const ImVec4 cyanDim = ImVec4(0.00f, 0.65f, 0.75f, 1.00f);
+    const ImVec4 white = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    const ImVec4 gray = ImVec4(0.67f, 0.67f, 0.67f, 1.00f);
+    const ImVec4 border = gray;
 
-    // Text: off-white / faded grey, like the in-game console and info panels
-    const ImVec4 textMain = ImVec4(0.90f, 0.90f, 0.88f, 1.00f);
-    const ImVec4 textDim = ImVec4(0.55f, 0.54f, 0.52f, 1.00f);
-    const ImVec4 textWarn = ImVec4(0.95f, 0.55f, 0.20f, 1.00f); // warning-orange, used sparingly
-
-    const ImVec4 border = ImVec4(0.25f, 0.06f, 0.06f, 0.60f);
-
-    colors[ImGuiCol_Text] = textMain;
-    colors[ImGuiCol_TextDisabled] = textDim;
+    colors[ImGuiCol_Text] = gray;
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
     colors[ImGuiCol_WindowBg] = bgDark;
     colors[ImGuiCol_ChildBg] = ImVec4(0, 0, 0, 0);
     colors[ImGuiCol_PopupBg] = bgPanel;
@@ -65,61 +65,59 @@ void SLUI::InitStyle()
     colors[ImGuiCol_FrameBgActive] = bgFrameActive;
 
     colors[ImGuiCol_TitleBg] = bgDark;
-    colors[ImGuiCol_TitleBgActive] = redDim;
+    colors[ImGuiCol_TitleBgActive] = bgPanel;
     colors[ImGuiCol_TitleBgCollapsed] = bgDark;
 
     colors[ImGuiCol_MenuBarBg] = bgPanel;
 
     colors[ImGuiCol_ScrollbarBg] = bgDark;
-    colors[ImGuiCol_ScrollbarGrab] = redDim;
-    colors[ImGuiCol_ScrollbarGrabHovered] = red;
-    colors[ImGuiCol_ScrollbarGrabActive] = redBright;
+    colors[ImGuiCol_ScrollbarGrab] = cyanDim;
+    colors[ImGuiCol_ScrollbarGrabHovered] = cyan;
+    colors[ImGuiCol_ScrollbarGrabActive] = white;
 
-    colors[ImGuiCol_CheckMark] = redBright;
+    colors[ImGuiCol_CheckMark] = cyan;
 
-    colors[ImGuiCol_SliderGrab] = red;
-    colors[ImGuiCol_SliderGrabActive] = redBright;
+    colors[ImGuiCol_SliderGrab] = cyanDim;
+    colors[ImGuiCol_SliderGrabActive] = cyan;
 
     colors[ImGuiCol_Button] = bgFrame;
-    colors[ImGuiCol_ButtonHovered] = redDim;
-    colors[ImGuiCol_ButtonActive] = red;
+    colors[ImGuiCol_ButtonHovered] = bgFrameHover;
+    colors[ImGuiCol_ButtonActive] = bgFrameActive;
 
-    colors[ImGuiCol_Header] = redDim;
-    colors[ImGuiCol_HeaderHovered] = red;
-    colors[ImGuiCol_HeaderActive] = redBright;
+    colors[ImGuiCol_Header] = bgFrame;
+    colors[ImGuiCol_HeaderHovered] = bgFrameHover;
+    colors[ImGuiCol_HeaderActive] = bgFrameActive;
 
     colors[ImGuiCol_Separator] = border;
-    colors[ImGuiCol_SeparatorHovered] = red;
-    colors[ImGuiCol_SeparatorActive] = redBright;
+    colors[ImGuiCol_SeparatorHovered] = cyanDim;
+    colors[ImGuiCol_SeparatorActive] = cyan;
 
-    colors[ImGuiCol_ResizeGrip] = redDim;
-    colors[ImGuiCol_ResizeGripHovered] = red;
-    colors[ImGuiCol_ResizeGripActive] = redBright;
+    colors[ImGuiCol_ResizeGrip] = cyanDim;
+    colors[ImGuiCol_ResizeGripHovered] = cyan;
+    colors[ImGuiCol_ResizeGripActive] = white;
 
     colors[ImGuiCol_Tab] = bgFrame;
-    colors[ImGuiCol_TabHovered] = red;
-    colors[ImGuiCol_TabActive] = redDim;
+    colors[ImGuiCol_TabHovered] = bgFrameHover;
+    colors[ImGuiCol_TabActive] = bgPanel;
     colors[ImGuiCol_TabUnfocused] = bgFrame;
-    colors[ImGuiCol_TabUnfocusedActive] = bgFrameHover;
+    colors[ImGuiCol_TabUnfocusedActive] = bgPanel;
 
-    colors[ImGuiCol_PlotLines] = textDim;
-    colors[ImGuiCol_PlotLinesHovered] = redBright;
-    colors[ImGuiCol_PlotHistogram] = red;
-    colors[ImGuiCol_PlotHistogramHovered] = redBright;
+    colors[ImGuiCol_PlotLines] = gray;
+    colors[ImGuiCol_PlotLinesHovered] = cyan;
+    colors[ImGuiCol_PlotHistogram] = cyanDim;
+    colors[ImGuiCol_PlotHistogramHovered] = cyan;
 
     colors[ImGuiCol_TableHeaderBg] = bgFrame;
     colors[ImGuiCol_TableBorderStrong] = border;
     colors[ImGuiCol_TableBorderLight] = ImVec4(border.x, border.y, border.z, 0.30f);
     colors[ImGuiCol_TableRowBg] = ImVec4(0, 0, 0, 0);
-    colors[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.02f);
+    colors[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.08f);
 
-    colors[ImGuiCol_TextSelectedBg] = ImVec4(redBright.x, redBright.y, redBright.z, 0.35f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(cyanDim.x, cyanDim.y, cyanDim.z, 0.45f);
 
-    colors[ImGuiCol_DragDropTarget] = textWarn;
-    colors[ImGuiCol_NavHighlight] = redBright;
+    colors[ImGuiCol_DragDropTarget] = cyan;
+    colors[ImGuiCol_NavHighlight] = cyan;
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1, 1, 1, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0, 0, 0, 0.60f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0, 0, 0, 0.60f);
-
-
 }

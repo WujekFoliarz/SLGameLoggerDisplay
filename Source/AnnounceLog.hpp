@@ -13,12 +13,13 @@ namespace AnnounceLog
         std::string Text = "";
         int CurrentCharPos = 0;
         float TimeAlive = 0.0f;
-        float TimeToLive = 1.0f;
+        float TimeToLive = 10.0f;
     };
 
     class AnnounceLog
     {
     public:
+        AnnounceLog();
         Vector2 Draw(int posX, int posY, float scale, bool hideText = false);
         void ShowText(const std::string &text);
         void AdvanceText(float timeStep);
@@ -26,7 +27,7 @@ namespace AnnounceLog
         void Clear();
     private:
         std::vector<AnnounceLogEntry> m_Queue;
-        float m_AdvanceSpeed = 0.001f;
+        float m_AdvanceSpeed = 0.001f; // Set this in constructor 
         float m_CurrentTime = 0.0f;
         int m_CurrentIndex = 0;
     };
