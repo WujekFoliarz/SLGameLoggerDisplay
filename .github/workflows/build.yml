@@ -85,6 +85,7 @@ jobs:
           name: SLGameLoggerDisplay-windows-mingw
           path: |
             out/windows-mingw/SLGameLoggerDisplay.exe
+            out/windows-mingw/SLGameLoggerDisplay.pdb
             out/windows-mingw/*.dll
             out/windows-mingw/Resources/
           if-no-files-found: error

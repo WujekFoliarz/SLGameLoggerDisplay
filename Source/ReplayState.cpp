@@ -36,13 +36,11 @@ void Replay::HandlePacket(const Packet::PlayerLeft::Data &data, State &state, bo
 {
     if (!playedInReverse)
     {
-        Player::Data playerData{};
-        if (auto it = state.Players.find(data.PlayerId); it == state.Players.end())
-        {
-            playerData = it->second;
+        auto it = state.Players.find(data.PlayerId);
+        if (it == state.Players.end())
             return;
-        }
 
+        Player::Data playerData = it->second;
         state.PlayerHistory.Save(data.PlayerId, state.CurrentReadTick, playerData);
         state.Players.erase(data.PlayerId);
     }

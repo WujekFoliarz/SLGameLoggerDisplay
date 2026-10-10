@@ -2,10 +2,13 @@
 #include "ServerBrowser.hpp"
 #include "UI/UI.hpp"
 #include "Fonts.hpp"
+#include "CrashDump.hpp"
 #include <print>
 
 int main()
 {
+    CrashDump::Initialize();
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
     InitWindow(1280, 720, "Secret Lab game log display");
     SetWindowMinSize(400, 300);
