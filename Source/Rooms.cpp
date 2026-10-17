@@ -309,6 +309,8 @@ std::variant<Rooms::LczRoom, Rooms::HczRoom, Rooms::EzRoom, Rooms::SurfaceRoom> 
         return Rooms::EzRoom::EzStraightColumn;
     if (roomName == "EzSmallrooms")
         return Rooms::EzRoom::EzStraightColumn;
+    if (roomName == "EzStraight")
+        return Rooms::EzRoom::EzStraightColumn;
     if (roomName == "EzVent")
         return Rooms::EzRoom::EzVent;
 
