@@ -4,6 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::MicroHidFiring::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
+    result.DontRender = false;
 
     result.Icon = PointParams::Icon::MicroHidFiring;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);

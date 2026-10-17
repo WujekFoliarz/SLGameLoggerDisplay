@@ -4,7 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::HitByBall::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
-    result.UseDotInsteadOfIcon = true;
+    result.DontRender = false;
     result.IconColor = PointParams::GetRoleColor(point.ReceiverRole);
     if (!point.Handled)
     {

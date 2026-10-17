@@ -1,6 +1,6 @@
 #include "DoorOpened.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::DoorOpened::Data Packet::DoorOpened::GetResult(const std::vector<uint8_t> &inputData)
 {

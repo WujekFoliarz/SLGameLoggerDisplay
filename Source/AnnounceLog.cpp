@@ -8,7 +8,7 @@
 
 AnnounceLog::AnnounceLog::AnnounceLog()
 {
-    m_AdvanceSpeed = 0.070;
+    m_AdvanceSpeed = 0.005;
 }
 
 Vector2 AnnounceLog::AnnounceLog::Draw(int posX, int posY, float scale, bool hideText)
@@ -157,6 +157,7 @@ void AnnounceLog::AnnounceLog::ShowText(const std::string &text)
 
 void AnnounceLog::AnnounceLog::AdvanceText(float timeStep)
 {
+    if (timeStep < 0) timeStep = -timeStep;
     m_CurrentTime += timeStep;
 
     int advanceBy = (int)(m_CurrentTime / m_AdvanceSpeed);

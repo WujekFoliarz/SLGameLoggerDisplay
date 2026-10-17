@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 
 #include "rlImGui.h"
 #include "PointParams.hpp"
@@ -17,6 +18,7 @@
 #include "UI/UI.hpp"
 #include "UI/Scale.hpp"
 #include "Packets/PacketResolver.hpp"
+#include "Packets/PacketReader.hpp"
 #include "Version.hpp"
 
 namespace
@@ -73,26 +75,39 @@ Replay::ReplayPlayer::FileLoadResult Replay::ReplayPlayer::LoadFromFile(const st
         if (std::fread(&packetType, 1, sizeof(packetType), file) != sizeof(packetType))
             break;
 
+        uint16_t packetId = packetType;
+        if (packetType == std::numeric_limits<uint8_t>::max())
+        {
+            if (std::fread(&packetId, 1, sizeof(packetId), file) != sizeof(packetId))
+                break;
+        }
+
         if (std::fread(&packetLength, 1, sizeof(packetLength), file) != sizeof(packetLength))
             break;
 
         std::vector<uint8_t> data(packetLength);
         if (std::fread(data.data(), 1, data.size(), file) != data.size())
         {
-            std::println("[Replay::ReplayPlayer::LoadFromFile] Truncated packet at end of file: type={}, length={}", static_cast<int>(packetType), packetLength);
+            std::println("[Replay::ReplayPlayer::LoadFromFile] Truncated packet at end of file: type={}, length={}", packetId, packetLength);
             break;
         }
 
-        auto event = static_cast<Events::EventEnum>(packetType);
+        auto event = static_cast<Events::EventEnum>(packetId);
         auto packet = Packet::Resolve(event, data);
 
         if (event == Events::EventEnum::Version)
         {
             auto versionData = std::get<Packet::VersionPacket::Data>(packet);
-            if (!Version::IsVersionCorrect(versionData))
+            const auto compatibility = Version::GetCompatibility(versionData);
+            if (compatibility == Version::Compatibility::OutOfDate)
             {
                 std::fclose(file);
-                return FileLoadResult::VersionNotMatching;
+                return FileLoadResult::VersionOutOfDate;
+            }
+            if (compatibility == Version::Compatibility::NewerThanProgram)
+            {
+                std::fclose(file);
+                return FileLoadResult::VersionNewerThanProgram;
             }
         }
         if (event == Events::EventEnum::NewTick)
@@ -129,25 +144,41 @@ Replay::ReplayPlayer::FileLoadResult Replay::ReplayPlayer::LoadFromMemory(const 
 
     while (reader.HasRemaining(3))
     {
-        uint8_t packetType = reader.Read<uint8_t>();
+        uint16_t packetId = reader.Read<uint8_t>();
+        if (packetId == std::numeric_limits<uint8_t>::max())
+        {
+            if (!reader.HasRemaining(sizeof(uint16_t) + sizeof(uint16_t)))
+                break;
+
+            packetId = reader.Read<uint16_t>();
+        }
+
+        if (!reader.HasRemaining(sizeof(uint16_t)))
+            break;
+
         uint16_t packetLength = reader.Read<uint16_t>();
 
         if (!reader.HasRemaining(packetLength))
         {
-            std::println("[Replay::ReplayPlayer::LoadFromMemory] Truncated packet: type={}, length={}", static_cast<int>(packetType), packetLength);
+            std::println("[Replay::ReplayPlayer::LoadFromMemory] Truncated packet: type={}, length={}", packetId, packetLength);
             break;
         }
 
         auto packetData = reader.ReadBytes(packetLength);
-        auto event = static_cast<Events::EventEnum>(packetType);
+        auto event = static_cast<Events::EventEnum>(packetId);
         auto packet = Packet::Resolve(event, packetData);
 
         if (event == Events::EventEnum::Version)
         {
             auto versionData = std::get<Packet::VersionPacket::Data>(packet);
-            if (!Version::IsVersionCorrect(versionData))
+            const auto compatibility = Version::GetCompatibility(versionData);
+            if (compatibility == Version::Compatibility::OutOfDate)
             {
-                return FileLoadResult::VersionNotMatching;
+                return FileLoadResult::VersionOutOfDate;
+            }
+            if (compatibility == Version::Compatibility::NewerThanProgram)
+            {
+                return FileLoadResult::VersionNewerThanProgram;
             }
         }
         if (event == Events::EventEnum::NewTick)
@@ -368,7 +399,7 @@ void Replay::ReplayPlayer::Render()
             {
                 auto eventResult = ConditionChecker::GetResult(p);
                 p.Icon = eventResult.Icon;
-                p.UseDotInsteadOfIcon = eventResult.UseDotInsteadOfIcon;
+                p.DontRender = eventResult.DontRender;
                 p.IconColor = eventResult.IconColor;
                 p.Handled = true;
 
@@ -376,6 +407,12 @@ void Replay::ReplayPlayer::Render()
                 {
                     m_ReplayState.Log.ShowText(Utils::GetRoundTimeString(p.Tick, m_ReplayState.TickRate) + " " + eventResult.AnnounceLogMessage);
                 }
+            }
+
+            if (p.DontRender)
+            {
+                p.Opacity -= PointParams::GetDecayRate(p.Event) * GetFrameTime();
+                continue;
             }
 
             auto zone = Locations::GetZoneFromHeight(p.Position.y);
@@ -402,13 +439,13 @@ void Replay::ReplayPlayer::Render()
             auto fadeOut = (unsigned char)std::max(0, std::min(255, (int)std::floor(p.Opacity * 256.0)));
 
             auto iconTexture = PointParams::GetIconTexture(p.Icon);
-            const float drawWidth = p.UseDotInsteadOfIcon || iconTexture == nullptr ? radius : iconTexture->width * 0.5f;
-            const float drawHeight = p.UseDotInsteadOfIcon || iconTexture == nullptr ? radius : iconTexture->height * 0.5f;
+            const float drawWidth = iconTexture == nullptr ? radius : iconTexture->width * 0.5f;
+            const float drawHeight = iconTexture == nullptr ? radius : iconTexture->height * 0.5f;
             const bool isOnScreen =
                 screenX + drawWidth >= 0.0f && screenX - drawWidth < GetScreenWidth() &&
                 screenY + drawHeight >= 0.0f && screenY - drawHeight < GetScreenHeight();
 
-            if (isOnScreen && (p.UseDotInsteadOfIcon || iconTexture == nullptr))
+            if (isOnScreen && iconTexture == nullptr)
             {
                 DrawCircle(static_cast<int>(screenX), static_cast<int>(screenY), radius, Color{p.IconColor.r, p.IconColor.g, p.IconColor.b, fadeOut});
             }
@@ -416,10 +453,11 @@ void Replay::ReplayPlayer::Render()
             {
                 float textureWidth = drawWidth;
                 float textureHeight = drawHeight;
+                float rotationDeg = -QuaternionToYAngleDegrees(p.Rotation.w, -p.Rotation.x, -p.Rotation.y, -p.Rotation.z);
                 Rectangle source = {0.0f, 0.0f, (float)iconTexture->width, (float)iconTexture->height};
                 Rectangle dest = {screenX, screenY, textureWidth, textureHeight};
                 Vector2 origin = {textureWidth * 0.5f, textureHeight * 0.5f};
-                DrawTexturePro(*iconTexture, source, dest, origin, 0, {p.IconColor.r, p.IconColor.g, p.IconColor.b, fadeOut});
+                DrawTexturePro(*iconTexture, source, dest, origin, rotationDeg, {p.IconColor.r, p.IconColor.g, p.IconColor.b, fadeOut});
             }
 
             p.Opacity -= PointParams::GetDecayRate(p.Event) * GetFrameTime();

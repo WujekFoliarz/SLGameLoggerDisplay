@@ -43,6 +43,7 @@ void Server::Browser::PollInput()
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             {
                 m_Selected = true;
+                m_LoadError.clear();
                 m_SelectedServerAddress = header.Address;
                 RefreshFileHeader(header.Address);
             }
@@ -61,6 +62,7 @@ void Server::Browser::PollInput()
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
             {
                 m_FileSelected = true;
+                m_LoadError.clear();
                 m_Result.clear();
                 m_Downloading = true;
 #ifdef __EMSCRIPTEN__
@@ -83,6 +85,7 @@ void Server::Browser::PollInput()
         m_FileSelected = false;
         m_HighlightedFile = -1;
         m_Files.clear();
+        m_LoadError.clear();
         m_Result.clear();
         m_ServerListScroll = 0;
         m_FileListScroll = 0.0f;
@@ -135,7 +138,6 @@ void Server::Browser::Render()
     float headerTextPosY = 50;
     DrawTextEx(Fonts::GetFont(Fonts::FontType::TwoWeekendGoSemibold), "SCP: SL Replay Player", {(screenWidth / 2) - (headerTextSize.x / 2), headerTextPosY}, headerTextScale, 5, WHITE);
 
-    int panelPosY = headerTextPosY + 10;
     Rectangle panelRectangle = {};
     panelRectangle.height = screenHeight - 200;
     panelRectangle.width = screenWidth - 100;
@@ -306,6 +308,12 @@ std::optional<std::vector<uint8_t>> Server::Browser::GetResult()
     return result;
 }
 
+void Server::Browser::ShowLoadError(const std::string &message)
+{
+    m_LoadError = message;
+    m_FileSelected = false;
+}
+
 void Server::Browser::Reset()
 {
     m_Selected = false;
@@ -319,6 +327,7 @@ void Server::Browser::Reset()
     m_Loading = false;
     m_FileListLoading = false;
     m_Result.clear();
+    m_LoadError.clear();
     m_Files.clear();
 }
 
@@ -606,6 +615,24 @@ void Server::Browser::RenderReplayFileList()
     {
         auto &header = m_Files[m_HighlightedFile];
         DrawRectangleRec(header.Rect, Color(128, 128, 128, 100));
+    }
+
+    if (!m_LoadError.empty())
+    {
+        const int baseTextSize = 28 * SLUI::GetScale();
+        const float maxTextWidth = screenWidth - 40.0f;
+        const float bannerY = screenHeight - 100.0f * SLUI::GetScale();
+        const std::string secondLine = "Check that the logger and display versions are compatible.";
+        const auto firstLineSize = MeasureTextEx(GetFontDefault(), m_LoadError.c_str(), baseTextSize, 2);
+        const auto secondLineSize = MeasureTextEx(GetFontDefault(), secondLine.c_str(), baseTextSize, 2);
+        const float scale = std::min(1.0f, maxTextWidth / std::max(firstLineSize.x, secondLineSize.x));
+        const int textSize = std::max(12, static_cast<int>(baseTextSize * scale));
+        const auto scaledFirstLineSize = MeasureTextEx(GetFontDefault(), m_LoadError.c_str(), textSize, 2);
+        const auto scaledSecondLineSize = MeasureTextEx(GetFontDefault(), secondLine.c_str(), textSize, 2);
+
+        DrawRectangle(10, static_cast<int>(bannerY - 8.0f), screenWidth - 20, textSize * 2 + 24, Color(50, 0, 0, 230));
+        DrawText(m_LoadError.c_str(), (screenWidth - scaledFirstLineSize.x) / 2.0f, bannerY, textSize, RED);
+        DrawText(secondLine.c_str(), (screenWidth - scaledSecondLineSize.x) / 2.0f, bannerY + textSize + 4.0f, textSize, WHITE);
     }
 }
 

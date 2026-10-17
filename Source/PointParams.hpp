@@ -42,6 +42,8 @@ namespace PointParams
         FlashbangExploded,
         FlashbangThrown,
         BallThrown,
+        BulletHole,
+        GunFired,
         Count
     };
 
@@ -89,6 +91,10 @@ namespace PointParams
             return "FlashbangThrown";
         case Icon::BallThrown:
             return "BallThrown";
+        case Icon::BulletHole:
+            return "BulletHole";
+        case Icon::GunFired:
+            return "GunFired";
         }
 
         return "Unknown";

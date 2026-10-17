@@ -13,7 +13,7 @@ namespace AnnounceLog
         std::string Text = "";
         int CurrentCharPos = 0;
         float TimeAlive = 0.0f;
-        float TimeToLive = 10.0f;
+        float TimeToLive = 5.0f;
     };
 
     class AnnounceLog

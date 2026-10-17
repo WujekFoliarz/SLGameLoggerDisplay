@@ -1,14 +1,13 @@
 #pragma once
 
-#include "../Events.hpp"
 #include <vector>
 #include <cstdint>
+#include <string>
 
 namespace Packet
 {
     namespace Room
     {
-        #pragma pack(push, 1)
         struct Data
         {
             std::string Name = "";
@@ -23,7 +22,6 @@ namespace Packet
             float RotationZ = 0.0f;
             float RotationW = 0.0f;
         };
-        #pragma pack(pop)
 
         Data GetResult(const std::vector<uint8_t>& inputData);
     }

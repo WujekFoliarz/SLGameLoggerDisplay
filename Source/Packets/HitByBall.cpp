@@ -1,5 +1,5 @@
 #include "HitByBall.hpp"
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::HitByBall::Data Packet::HitByBall::GetResult(const std::vector<uint8_t> &inputData)
 {

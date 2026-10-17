@@ -9,7 +9,7 @@ namespace ConditionChecker
     {
         std::string AnnounceLogMessage = "";
         PointParams::Icon Icon = PointParams::Icon::None;
-        bool UseDotInsteadOfIcon = false;
+        bool DontRender = true;
         Color IconColor = WHITE;
     };
 

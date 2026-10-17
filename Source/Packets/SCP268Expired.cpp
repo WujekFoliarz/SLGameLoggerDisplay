@@ -1,5 +1,5 @@
 #include "SCP268Expired.hpp"
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::SCP268Expired::Data Packet::SCP268Expired::GetResult(const std::vector<uint8_t> &inputData)
 {

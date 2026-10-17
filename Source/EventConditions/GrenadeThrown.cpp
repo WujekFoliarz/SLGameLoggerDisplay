@@ -6,6 +6,7 @@ ConditionChecker::ConditionCheckResult EventConditions::GrenadeThrown::GetResult
 {
     ConditionChecker::ConditionCheckResult result{};
 
+    result.DontRender = false;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);
     result.Icon = PointParams::Icon::GrenadeThrown;
     

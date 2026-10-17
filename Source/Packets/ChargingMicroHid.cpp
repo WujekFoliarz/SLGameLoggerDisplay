@@ -1,6 +1,6 @@
 #include "ChargingMicroHid.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::ChargingMicroHid::Data Packet::ChargingMicroHid::GetResult(const std::vector<uint8_t> &inputData)
 {

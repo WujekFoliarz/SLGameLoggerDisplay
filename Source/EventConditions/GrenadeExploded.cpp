@@ -4,7 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::GrenadeExploded::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
-
+    result.DontRender = false;
     result.Icon = PointParams::Icon::GrenadeExploded;
     result.IconColor = PointParams::GetRoleColor(point.ReceiverRole);
 

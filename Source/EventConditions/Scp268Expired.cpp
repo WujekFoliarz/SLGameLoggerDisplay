@@ -4,6 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::Scp268Expired::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
+    result.DontRender = false;
 
     result.Icon = PointParams::Icon::SCP268Expired;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);

@@ -1,6 +1,6 @@
 #include "PlayerDied.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::PlayerDied::Data Packet::PlayerDied::GetResult(const std::vector<uint8_t> &inputData)
 {

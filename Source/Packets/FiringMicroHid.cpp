@@ -1,6 +1,6 @@
 #include "FiringMicroHid.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::FiringMicroHid::Data Packet::FiringMicroHid::GetResult(const std::vector<uint8_t> &inputData)
 {

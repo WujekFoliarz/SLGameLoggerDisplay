@@ -4,6 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::PlayerEscaped::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
+    result.DontRender = false;
 
     result.Icon = PointParams::Icon::PlayerEscaped;
     result.IconColor = PointParams::GetRoleColor(point.ReceiverRole);

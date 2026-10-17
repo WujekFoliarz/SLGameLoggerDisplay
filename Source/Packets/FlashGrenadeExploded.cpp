@@ -1,5 +1,5 @@
 #include "FlashGrenadeExploded.hpp"
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::FlashGrenadeExploded::Data Packet::FlashGrenadeExploded::GetResult(const std::vector<uint8_t> &inputData)
 {

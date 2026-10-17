@@ -1,6 +1,6 @@
 #include "Room.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 #include <print>
 
 Packet::Room::Data Packet::Room::GetResult(const std::vector<uint8_t> &inputData)

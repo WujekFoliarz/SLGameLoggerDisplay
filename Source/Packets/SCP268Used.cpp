@@ -1,5 +1,5 @@
 #include "SCP268Used.hpp"
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::SCP268Used::Data Packet::SCP268Used::GetResult(const std::vector<uint8_t> &inputData)
 {

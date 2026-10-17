@@ -1,5 +1,5 @@
 #include "PickingUpItem.hpp"
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::PickingUpItem::Data Packet::PickingUpItem::GetResult(const std::vector<uint8_t> &inputData)
 {

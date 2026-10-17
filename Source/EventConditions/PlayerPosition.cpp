@@ -5,7 +5,7 @@ ConditionChecker::ConditionCheckResult EventConditions::PlayerPosition::GetResul
 {
     ConditionChecker::ConditionCheckResult result{};
 
-    result.UseDotInsteadOfIcon = true;
+    result.DontRender = false;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);
 
     return result;

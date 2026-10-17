@@ -4,6 +4,13 @@
 
 namespace Version
 {
+    enum class Compatibility
+    {
+        Matching,
+        OutOfDate,
+        NewerThanProgram,
+    };
+
     struct Version
     {
         int Major = 0;
@@ -12,5 +19,5 @@ namespace Version
     };
 
     Version GetVersion();
-    bool IsVersionCorrect(Packet::VersionPacket::Data &data);
+    Compatibility GetCompatibility(const Packet::VersionPacket::Data &data);
 }

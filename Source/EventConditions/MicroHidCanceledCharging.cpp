@@ -4,6 +4,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::MicroHidCanceledCharging::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
+    result.DontRender = false;
 
     result.Icon = PointParams::Icon::MicroHidCanceledCharging;
     result.IconColor = PointParams::GetRoleColor(point.GiverRole);

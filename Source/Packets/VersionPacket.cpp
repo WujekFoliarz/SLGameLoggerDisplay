@@ -1,6 +1,6 @@
 #include "VersionPacket.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::VersionPacket::Data Packet::VersionPacket::GetResult(const std::vector<uint8_t> &inputData)
 {

@@ -64,6 +64,7 @@ EventConditions::PlayerDied::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
 
+    result.DontRender = false;
     result.IconColor = PointParams::GetRoleColor(point.ReceiverRole);
     result.Icon = PointParams::Icon::PlayerEliminated;
 

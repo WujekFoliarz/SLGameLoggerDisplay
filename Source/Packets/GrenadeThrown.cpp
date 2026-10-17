@@ -1,6 +1,6 @@
 #include "GrenadeThrown.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::GrenadeThrown::Data Packet::GrenadeThrown::GetResult(const std::vector<uint8_t> &inputData)
 {

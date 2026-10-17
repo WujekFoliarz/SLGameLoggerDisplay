@@ -1,6 +1,6 @@
 #include "NewTick.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::NewTick::Data Packet::NewTick::GetResult(const std::vector<uint8_t> &inputData)
 {

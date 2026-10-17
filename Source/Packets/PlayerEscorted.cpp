@@ -1,6 +1,6 @@
 #include "PlayerEscorted.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::PlayerEscorted::Data Packet::PlayerEscorted::GetResult(const std::vector<uint8_t> &inputData)
 {

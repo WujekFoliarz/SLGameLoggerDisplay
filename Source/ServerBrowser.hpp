@@ -36,6 +36,7 @@ namespace Server
         void Process();
         void Render();
         std::optional<std::vector<uint8_t>> GetResult();
+        void ShowLoadError(const std::string &message);
         void Reset();
 
     private:
@@ -69,5 +70,6 @@ namespace Server
         bool m_FileSelected = false;
         std::atomic<bool> m_Downloading = false;
         std::vector<uint8_t> m_Result;
+        std::string m_LoadError;
         Rectangle m_BackButton = {30.0f,30.0f,220.0f,48.0f};};
 }

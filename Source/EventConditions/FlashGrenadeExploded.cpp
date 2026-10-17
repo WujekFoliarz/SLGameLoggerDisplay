@@ -6,6 +6,7 @@
 ConditionChecker::ConditionCheckResult EventConditions::FlashGrenadeExploded::GetResult(const Events::Point &point)
 {
     ConditionChecker::ConditionCheckResult result{};
+    result.DontRender = false;
     result.Icon = PointParams::Icon::FlashbangExploded;
     result.IconColor = PointParams::GetRoleColor(point.ReceiverRole);
     if (!point.Handled)

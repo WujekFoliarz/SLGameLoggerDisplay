@@ -18,7 +18,8 @@ namespace Replay
         {
             Unknown,
             Success,
-            VersionNotMatching,
+            VersionOutOfDate,
+            VersionNewerThanProgram,
             MissingMagic,
             FileFailedToOpen,
         };

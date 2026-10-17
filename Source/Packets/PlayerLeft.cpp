@@ -1,6 +1,6 @@
 #include "PlayerLeft.hpp"
 #include <cstring>
-#include "PacketResolver.hpp"
+#include "PacketReader.hpp"
 
 Packet::PlayerLeft::Data Packet::PlayerLeft::GetResult(const std::vector<uint8_t> &inputData)
 {
